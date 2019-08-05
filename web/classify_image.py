@@ -7,6 +7,7 @@ import os.path
 import re
 import sys
 import tarfile
+import json
 
 import numpy as np
 from six.moves import urllib
@@ -124,10 +125,15 @@ def run_inference_on_image(image):
         node_lookup = NodeLookup()
 
         top_k = predictions.argsort()[-FLAGS.num_top_predictions:][::-1]
+        retJson = {}
         for node_id in top_k:
             human_string = node_lookup.id_to_string(node_id)
             score = predictions[node_id]
+            retJson[human_string] = score
             print('%s (score = %.5f)' % (human_string, score))
+        
+        with open("text.txt") as f:
+            json.dump(retJson, f)
 
 
 def maybe_download_and_extract():
