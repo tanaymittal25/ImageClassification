@@ -23,9 +23,7 @@ DATA_URL = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-
 class NodeLookup(object):
     """Converts integer node ID's to human readable labels."""
 
-    def __init__(self,
-                 label_lookup_path=None,
-                 uid_lookup_path=None):
+    def __init__(self, label_lookup_path=None, uid_lookup_path=None):
         if not label_lookup_path:
             label_lookup_path = os.path.join(
                 FLAGS.model_dir, 'imagenet_2012_challenge_label_map_proto.pbtxt')
@@ -86,8 +84,7 @@ class NodeLookup(object):
 def create_graph():
     """Creates a graph from saved GraphDef file and returns a saver."""
     # Creates graph from saved graph_def.pb.
-    with tf.gfile.FastGFile(os.path.join(
-            FLAGS.model_dir, 'classify_image_graph_def.pb'), 'rb') as f:
+    with tf.gfile.FastGFile(os.path.join(FLAGS.model_dir, 'classify_image_graph_def.pb'), 'rb') as f:
         graph_def = tf.GraphDef()
         graph_def.ParseFromString(f.read())
         _ = tf.import_graph_def(graph_def, name='')
@@ -117,8 +114,8 @@ def run_inference_on_image(image):
         #   encoding of the image.
         # Runs the softmax tensor by feeding the image_data as input to the graph.
         softmax_tensor = sess.graph.get_tensor_by_name('softmax:0')
-        predictions = sess.run(softmax_tensor,
-                               {'DecodeJpeg/contents:0': image_data})
+        predictions = sess.run(
+            softmax_tensor, {'DecodeJpeg/contents:0': image_data})
         predictions = np.squeeze(predictions)
 
         # Creates node ID --> English string lookup.
@@ -131,7 +128,7 @@ def run_inference_on_image(image):
             score = predictions[node_id]
             retJson[human_string] = score
             print('%s (score = %.5f)' % (human_string, score))
-        
+
         with open("text.txt") as f:
             json.dump(retJson, f)
 
@@ -148,7 +145,8 @@ def maybe_download_and_extract():
             sys.stdout.write('\r>> Downloading %s %.1f%%' % (
                 filename, float(count * block_size) / float(total_size) * 100.0))
             sys.stdout.flush()
-        filepath, _ = moves.urllib.request.urlretrieve(DATA_URL, filepath, _progress)
+        filepath, _ = moves.urllib.request.urlretrieve(
+            DATA_URL, filepath, _progress)
         print()
         statinfo = os.stat(filepath)
         print('Successfully downloaded', filename, statinfo.st_size, 'bytes.')
@@ -157,8 +155,8 @@ def maybe_download_and_extract():
 
 def main(_):
     maybe_download_and_extract()
-    image = (FLAGS.image_file if FLAGS.image_file else
-             os.path.join(FLAGS.model_dir, 'cropped_panda.jpg'))
+    image = (FLAGS.image_file if FLAGS.image_file else os.path.join(
+        FLAGS.model_dir, 'temp.jpg'))
     run_inference_on_image(image)
 
 
@@ -173,7 +171,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--model_dir',
         type=str,
-        default='/tmp/imagenet',
+        default='.',
         help="""\
       Path to classify_image_graph_def.pb,
       imagenet_synset_to_human_label_map.txt, and
@@ -183,7 +181,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--image_file',
         type=str,
-        default='',
+        default='./temp.jpg',
         help='Absolute path to image file.'
     )
     parser.add_argument(
@@ -192,5 +190,6 @@ if __name__ == '__main__':
         default=5,
         help='Display this many predictions.'
     )
+    print(parser)
     FLAGS, unparsed = parser.parse_known_args()
     tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)

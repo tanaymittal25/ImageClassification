@@ -65,6 +65,7 @@ def verifyPassword(username, password):
     else:
         return False
 
+
 def getReturnJson(status, msg):
     retJson = {
         "status": status,
@@ -72,6 +73,7 @@ def getReturnJson(status, msg):
     }
 
     return retJson
+
 
 def verifyUser(username, password):
     if not UserExist(username):
@@ -106,8 +108,8 @@ class Classify(Resource):
 
         with open("temp.jpg", "wb") as f:
             f.write(r.content)
-            proc = subprocess.Popen(
-                'python classify_image.py --model_dir=. --image_file=./temp.jpg')
+            # command = 'python classify_image.py'
+            proc = subprocess.Popen(['python classify_image.py'], shell=True)
             proc.communicate()[0]
             proc.wait()
             with open("text.txt") as g:
@@ -122,12 +124,13 @@ class Classify(Resource):
         })
         return retJson
 
+
 class Refill(Resource):
     def post(self):
         postedData = request.get_json()
 
         username = postedData["username"]
-        password = postedData["password"]
+        password = postedData["admin_pw"]
         amount = postedData["amount"]
 
         if not UserExist(username):
@@ -137,15 +140,16 @@ class Refill(Resource):
 
         if not password == adminPassword:
             return jsonify(getReturnJson(304, "Invalid Admin"))
-        
+
         users.update({
             "Username": username
         }, {
             "$set": {
                 "Tokens": amount
             }
-        }) 
+        })
         return jsonify(getReturnJson(200, "Successful"))
+
 
 api.add_resource(Register, '/register')
 api.add_resource(Classify, '/classify')
